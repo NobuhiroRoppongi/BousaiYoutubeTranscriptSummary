@@ -120,6 +120,13 @@ save_root = st.text_input(
     value=os.path.abspath("./yt_outputs"),
 )
 root_dir = normalize_root(save_root)
+# After: root_dir = normalize_root(save_root)
+IS_POSIX = (os.name == "posix")
+if IS_POSIX and re.match(r"^[A-Za-z]:\\", save_root.strip()):
+    # User pasted a Windows path in the cloud — fall back to a safe local folder
+    root_dir = os.path.abspath("./yt_outputs")
+    st.info("Detected Windows path on Linux. Using ./yt_outputs inside the app instead.")
+
 st.caption(f"Resolved output root: {root_dir}")
 
 col_a, col_b = st.columns(2)
@@ -176,17 +183,21 @@ _common_opts = {
     "logger": _StLogger(),
 }
 _common_opts.update({
-    "sleep_interval_requests": 1.0,   # pause between HTTP requests
+    "sleep_interval_requests": 1.0,
     "max_sleep_interval_requests": 2.0,
     "geo_bypass": True,
-    "geo_bypass_country": "JP",       # you're in Tokyo
+    "geo_bypass_country": "JP",
     "http_headers": {
         "User-Agent": "Mozilla/5.0",
         "Referer": "https://www.youtube.com/",
+        "Accept-Language": "ja,en-US;q=0.7,en;q=0.3",
     },
-    # Try a couple of player clients (yt-dlp will pick a working one)
-    "extractor_args": {"youtube": {"player_client": ["android", "web"]}},
+    # Prefer cookie-friendly clients first
+    "extractor_args": {"youtube": {"player_client": ["ios", "tv_embedded", "web"]}},
+    # Force IPv4 to avoid IPv6-only 403s
+    "source_address": "0.0.0.0",
 })
+
 
 # Attach cookies if provided via Secrets
 if COOKIEFILE_PATH:
