@@ -4,4 +4,3 @@ pydub
 openai
 pandas
 openpyxl
-pyaudioop
