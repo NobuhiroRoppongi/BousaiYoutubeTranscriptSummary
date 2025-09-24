@@ -4,4 +4,4 @@ pydub
 openai
 pandas
 openpyxl
-ffmpeg
+pyaudioop
